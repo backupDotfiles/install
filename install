@@ -225,7 +225,7 @@ foreground =               $FOREGROUND
 font-0 =                   $FONTFAMILY:style=Regular:pixelsize=12;2
 module-margin =            1
 modules-left =             logo bspwm window
-modules-right =            cpu memory eth wlan date
+modules-right =            cpu memory eth wlan battery date
 cursor-click =             pointer
 wm-restack =               bspwm
 
@@ -279,7 +279,39 @@ label-connected =          %{F$BLUE}%{F-} %ifname%
 [module/wlan]
 inherit =                  network-base
 interface-type =           wireless
-label-connected =          %{F$BLUE}直%{F-}%ifname%
+label-connected =          %{F$BLUE}直%{F-} %ifname%
+
+[module/battery]
+type =                     internal/battery
+full-at =                  99
+low-at =                   5
+battery =                  BAT1
+adapter =                  ACAD
+poll-interval =            5
+format-charging =          <animation-charging> <label-charging>
+format-discharging =       <ramp-capacity> <label-discharging>
+label-charging =           %percentage%
+label-discharging =        %percentage%
+label-full =               
+label-low =                
+ramp-capacity-0 =          
+ramp-capacity-1 =          
+ramp-capacity-2 =          
+ramp-capacity-3 =          
+ramp-capacity-4 =          
+animation-charging-0 =     
+animation-charging-1 =     
+animation-charging-2 =     
+animation-charging-3 =     
+animation-charging-4 =     
+animation-charging-framerate = 750
+animation-discharging-0 =  
+animation-discharging-1 =  
+animation-discharging-2 =  
+animation-discharging-3 =  
+animation-discharging-4 =  
+animation-discharging-framerate = 750
+
 
 [module/date]
 type =                     internal/date
@@ -565,6 +597,19 @@ picom() {
 	sed -i "s/vsync = true/# vsync = true/" "$C/picom/picom.conf"
 }
 
+touchpad() {
+	sudo bash -c "cat > "/etc/X11/xorg.conf.d/30-touchpad.conf" <<- _EOF_
+Section \"InputClass\"
+  Identifier \"touchpad\"
+  Driver \"libinput\"
+  Option \"Tapping\" \"on\"
+  Option \"TappingButtonMap\" \"lmr\"
+  Option \"NaturalScrolling\" \"true\"
+EndSection
+	_EOF_
+"
+}
+
 download_fonts() {
 	mkdir -p "$D/share/fonts/nerd/jetbrains"
 	weights=("Regular" "Bold" "Italic")
@@ -585,14 +630,15 @@ main() {
 	#dotzprofile
 	#xinitrc
 	#alacritty
-	bspwm
+	#bspwm
 	#sxhkd
 	polybar
 	#rofi
-	zsh
+	#zsh
 	#neovim
 	#picom
 	#gtk_theme
+	#touchpad
 	#download_fonts
 	#download_bg
 }
