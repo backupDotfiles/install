@@ -269,17 +269,18 @@ type =                     internal/network
 interval =                 5
 format-connected =         <label-connected>
 format-disconnected =      <label-disconnected>
-label-disconnected =       %ifname% OFF
 
 [module/eth]
 inherit =                  network-base
 interface-type =           wired
-label-connected =          %{F$BLUE}%{F-} %ifname%
+label-connected =          %{F$BLUE}%{F-} %ifname%
+label-disconnected =       %{F$BLUE}%{F-} %ifname%
 
 [module/wlan]
 inherit =                  network-base
 interface-type =           wireless
 label-connected =          %{F$BLUE}直%{F-} %ifname%
+label-disconnected =       %{F$BLUE}睊%{F-} %ifname%
 
 [module/battery]
 type =                     internal/battery
@@ -288,10 +289,10 @@ low-at =                   5
 battery =                  BAT1
 adapter =                  ACAD
 poll-interval =            5
-format-charging =          <animation-charging> <label-charging>
-format-discharging =       <ramp-capacity> <label-discharging>
-label-charging =           %percentage%
-label-discharging =        %percentage%
+format-charging =          %{F$BLUE}<animation-charging>%{F-} <label-charging>
+format-discharging =       %{F$BLUE}<ramp-capacity>%{F-} <label-discharging>
+label-charging =           %percentage%%
+label-discharging =        %percentage%%
 label-full =               
 label-low =                
 ramp-capacity-0 =          
