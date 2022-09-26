@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#!/usr/bin/env bash
 
 # [[ $# = "1" ]] && [[ $1 = "-g" ]] && pacman -Q | cut -f 1 -d " " > pkg.list
 # [[ $# = "1" ]] && [[ $1 = "-i" ]] && sudo pacman -S $(cat pkg.list)
@@ -34,22 +34,25 @@ ALTMAGENTA="#bb9af7"
 ALTCYAN="#7dcfff"
 ALTWHITE="#c0caf5"
 
-# Create home folders
-create_folders() {
+folders() {
 	folders=("Desktop" "Downloads" "Pictures" "Music" "Videos" "Templates" "Public")
 	for f in "${folders[@]}"
 	do
-		mkdir -p "$H/$f"
+		folder="$H/$f"
+		if [ ! -d "$folder" ]; then
+			echo "INFO: $folder folder created"
+			mkdir -p "$folder"
+		fi
 	done
 }
 
-update_install() {
+packages() {
 	pkg=("neovim bspwm sxhkd alacritty picom rofi polybar dunst zsh xorg-xsetroot firefox adwaita-icon-theme curl wget xwallpaper inetutils arc-icon-theme arc-gtk-theme pcmanfm-gtk3")
 	$P -Syu
 	echo "y" | $P -S $pkg
 }
 
-set_dotzprofile() {
+dotzprofile() {
 	cat > "$H/.zprofile" <<- _EOF_
 export PATH=/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:\$HOME/.local/bin
 export XDG_CONFIG_HOME="\$HOME/.config"
@@ -60,13 +63,11 @@ export ZDOTDIR="\$XDG_CONFIG_HOME/zsh"
 export EDITOR="nvim"
 export VISUAL="nvim"
 
-#[[ -f \$HOME/.bashrc ]] && . \$HOME/.bashrc
-
 [[ "\$(tty)" = "/dev/tty1" ]] && startx \$XDG_CONFIG_HOME/x/xinitrc
 	_EOF_
 }
 
-set_xinitrc() {
+xinitrc() {
 	mkdir -p "$C/x"
 	cat > "$C/x/xinitrc" <<- _EOF_
 $SB
@@ -75,7 +76,7 @@ exec bspwm
 	_EOF_
 }
 
-set_alacritty() {
+alacritty() {
 	mkdir -p "$C/alacritty"
 	cat > "$C/alacritty/alacritty.yml" <<- _EOF_
 window:
@@ -129,7 +130,7 @@ colors:
 	_EOF_
 }
 
-set_bspwm() {
+bspwm() {
 	mkdir -p "$C/bspwm"
 	cat > "$C/bspwm/bspwmrc" <<- _EOF_
 $SB
@@ -137,7 +138,7 @@ $SB
 # Workspaces
 name=1
 for m in \`bspc query -M --names\`;do
-  bspc monitor \$m -d "1" "2" "3"
+  bspc monitor \$m -d "" "" ""
   let name++
 done
 
@@ -166,7 +167,7 @@ xwallpaper --zoom \$HOME/Pictures/blue-anime-girl.jpg
 	chmod +x "$C/bspwm/bspwmrc"
 }
 
-set_sxhkd() {
+sxhkd() {
 	mkdir -p "$C/sxhkd"
 	cat > "$C/sxhkd/sxhkdrc" <<- _EOF_
 # Terminal
@@ -211,22 +212,28 @@ super + alt + shift + {h,j,k,l}
 	_EOF_
 }
 
-set_polybar() {
+polybar() {
 	mkdir -p "$C/polybar"
 	cat > "$C/polybar/config.ini" <<- _EOF_
 [bar/top]
 width =                    100%
-heigth =                   24pt
+height =                   24pt
 radius =                   0
 padding =                  1
 background =               $BACKGROUND
 foreground =               $FOREGROUND
-font-0 =                   $FONTFAMILY:style=Regular:pixelsize=14;2
+font-0 =                   $FONTFAMILY:style=Regular:pixelsize=12;2
 module-margin =            1
-modules-left =             bspwm window
+modules-left =             logo bspwm window
 modules-right =            cpu memory eth wlan date
 cursor-click =             pointer
 wm-restack =               bspwm
+
+[module/logo]
+type =                     custom/text
+content =                  ""
+content-foreground =       $BLUE
+
 
 [module/bspwm]
 type =                     internal/xworkspaces
@@ -246,15 +253,15 @@ label =                    %title:0:40:...%
 [module/cpu]
 type =                     internal/cpu
 interval =                 2
-format-prefix =            " "
-format-prefix-foreground = $FOREGROUND
+format-prefix =            " "
+format-prefix-foreground = $BLUE
 label =                    %percentage:2%%
 
 [module/memory]
 type =                     internal/memory
 interval =                 2
-format-prefix =            " "
-format-prefix-foreground = $FOREGROUND
+format-prefix =            "﬙ "
+format-prefix-foreground = $BLUE
 label =                    %percentage_used:2%%
 
 [network-base]
@@ -262,22 +269,22 @@ type =                     internal/network
 interval =                 5
 format-connected =         <label-connected>
 format-disconnected =      <label-disconnected>
-label-disconnected =       %ifname% off
+label-disconnected =       %ifname% OFF
 
 [module/eth]
 inherit =                  network-base
 interface-type =           wired
-label-connected =          %ifname%
+label-connected =          %{F$BLUE}%{F-} %ifname%
 
 [module/wlan]
 inherit =                  network-base
 interface-type =           wireless
-label-connected =          %ifname%
+label-connected =          %{F$BLUE}直%{F-}%ifname%
 
 [module/date]
 type =                     internal/date
 interval =                 1
-date =                     %b %d %I:%M %p
+date =                     %{F$BLUE}%{F-} %b %d %{F$BLUE}%{F-} %I:%M %p
 label =                    %date%
 label-foreground =         $FOREGROUND
 
@@ -287,9 +294,9 @@ pseudo-transparency =      true
 	_EOF_
 }
 
-#set_dunst() {}
+#dunst() {}
 
-set_rofi() {
+rofi() {
 	mkdir -p "$C/rofi"
 	cat > "$C/rofi/config.rasi" <<- _EOF_
 configuration {
@@ -374,7 +381,7 @@ prompt {
 	_EOF_
 }
 
-set_zsh() {
+zsh() {
 	mkdir -p "$C/zsh"
 	if [[ $SHELL != "/usr/bin/zsh" ]]; then
 		chsh -s /usr/bin/zsh
@@ -397,15 +404,16 @@ autoload -Uz compinit
 compinit
 # End of lines added by compinstall
 
-PROMPT="%~ > "
+PROMPT="%~  "
 
 alias ls="ls --color=auto"
 alias la="ls -A"
 alias ll="ls -alF"
+alias vim="nvim"
 	_EOF_
 }
 
-set_gtk_theme() {
+gtk_theme() {
 	mkdir -p "$C/gtk-3.0"
 	cat > "$C/gtk-3.0/settings.ini" <<- _EOF_
 [Settings]
@@ -415,7 +423,147 @@ gtk-font-name =       $FONTFAMILY 10
 	_EOF_
 }
 
-#set_nvim() {}
+neovim() {
+	mkdir -p "$C/nvim/lua/main"
+	cat > "$C/nvim/init.lua" <<- _EOF_
+require "main.options"
+require "main.plugins"
+require "main.colorscheme"
+	_EOF_
+
+	cat > "$C/nvim/lua/main/options.lua" <<- _EOF_
+local options = {
+  backup = false,                          -- creates a backup file
+  clipboard = "unnamedplus",               -- allows neovim to access the system clipboard
+  cmdheight = 2,                           -- more space in the neovim command line for displaying messages
+  completeopt = { "menuone", "noselect" }, -- mostly just for cmp
+  conceallevel = 0,                        -- so that `` is visible in markdown files
+  fileencoding = "utf-8",                  -- the encoding written to a file
+  hlsearch = true,                         -- highlight all matches on previous search pattern
+  ignorecase = true,                       -- ignore case in search patterns
+  mouse = "a",                             -- allow the mouse to be used in neovim
+  pumheight = 10,                          -- pop up menu height
+  showmode = false,                        -- we don't need to see things like -- INSERT -- anymore
+  showtabline = 2,                         -- always show tabs
+  smartcase = true,                        -- smart case
+  smartindent = true,                      -- make indenting smarter again
+  splitbelow = true,                       -- force all horizontal splits to go below current window
+  splitright = true,                       -- force all vertical splits to go to the right of current window
+  swapfile = false,                        -- creates a swapfile
+  -- termguicolors = true,                 -- set term gui colors (most terminals support this)
+  timeoutlen = 100,                        -- time to wait for a mapped sequence to complete (in milliseconds)
+  undofile = false,                        -- enable persistent undo
+  updatetime = 300,                        -- faster completion (4000ms default)
+  writebackup = false,                     -- if a file is being edited by another program (or was written to file while editing with another program), it is not allowed to be edited
+  expandtab = false,                       -- convert tabs to spaces
+  shiftwidth = 2,                          -- the number of spaces inserted for each indentation
+  tabstop = 2,                             -- insert 2 spaces for a tab
+  cursorline = true,                       -- highlight the current line
+  number = true,                           -- set numbered lines
+  relativenumber = true,                   -- set relative numbered lines
+  numberwidth = 4,                         -- set number column width to 2 {default 4}
+  signcolumn = "yes",                      -- always show the sign column, otherwise it would shift the text each time
+  wrap = false,                            -- display lines as one long line
+  scrolloff = 8,                           -- is one of my fav
+  sidescrolloff = 8,
+}
+
+for k, v in pairs(options) do
+  vim.opt[k] = v
+end
+	_EOF_
+
+	cat > "$C/nvim/lua/main/plugins.lua" <<- _EOF_
+local fn = vim.fn
+
+-- Automatically install packer
+local install_path = fn.stdpath("data") .. "/site/pack/packer/start/packer.nvim"
+if fn.empty(fn.glob(install_path)) > 0 then
+  PACKER_BOOTSTRAP = fn.system({
+    "git",
+    "clone",
+    "--depth",
+    "1",
+    "https://github.com/wbthomason/packer.nvim",
+    install_path,
+  })
+  print("Installing packer close and reopen Neovim...")
+  vim.cmd([[packadd packer.nvim]])
+end
+
+-- Autocommand that reloads neovim whenever you save the plugins.lua file
+vim.cmd([[
+  augroup packer_user_config
+    autocmd!
+    autocmd BufWritePost plugins.lua source <afile> | PackerSync
+  augroup end
+]])
+
+-- Use a protected call so we don't error out on first use
+local status_ok, packer = pcall(require, "packer")
+if not status_ok then
+  return
+end
+
+-- Have packer use a popup window
+packer.init({
+  display = {
+    open_fn = function()
+      return require("packer.util").float({ border = "rounded" })
+    end,
+  },
+})
+
+-- Install your plugins here
+return packer.startup(function(use)
+  -- My plugins here
+
+  use({ "wbthomason/packer.nvim" })
+  use({ "nvim-lua/plenary.nvim" })
+
+  -- Colorschemes
+  use({ "folke/tokyonight.nvim" })
+
+  -- Automatically set up your configuration after cloning packer.nvim
+  -- Put this at the end after all plugins
+  if PACKER_BOOTSTRAP then
+    require("packer").sync()
+  end
+end)
+	_EOF_
+
+	cat > "$C/nvim/lua/main/colorscheme.lua" <<- _EOF_
+local status_ok, tokyonight = pcall(require, "tokyonight")
+if not status_ok then
+  return
+end
+
+tokyonight.setup({
+  style = "storm",
+  transparent = true,
+  styles = {
+    comments = { italic = false },
+    keywords = { italic = false },
+  },
+})
+
+vim.cmd [[
+try
+  colorscheme tokyonight
+catch /^Vim\%((\a\+)\)\=:E185/
+  colorscheme default
+  set background=dark
+endtry
+]]
+	_EOF_
+}
+
+picom() {
+	mkdir -p "$C/picom"
+	cp "/usr/share/doc/picom/picom.conf.example" "$C/picom/picom.conf"
+	sed -i "s/# vsync = false/vsync = false/" "$C/picom/picom.conf"
+	sed -i "s/vsync = true/# vsync = true/" "$C/picom/picom.conf"
+}
 
 download_fonts() {
 	mkdir -p "$D/share/fonts/nerd/jetbrains"
@@ -432,19 +580,21 @@ download_bg() {
 }
 
 main() {
-	create_folders
-	#update_install
-	set_dotzprofile
-	set_xinitrc
-	set_alacritty
-	set_bspwm
-	set_sxhkd
-	set_polybar
-	set_rofi
-	set_zsh
-	set_gtk_theme
-	# download_fonts
-	# download_bg
+	#folders
+	#packages
+	#dotzprofile
+	#xinitrc
+	#alacritty
+	bspwm
+	#sxhkd
+	polybar
+	#rofi
+	zsh
+	#neovim
+	#picom
+	#gtk_theme
+	#download_fonts
+	#download_bg
 }
 
 main
