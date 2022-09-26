@@ -36,7 +36,7 @@ ALTWHITE="#c0caf5"
 
 # Create home folders
 create_folders() {
-	folders=("Downloads" "Pictures" "Music")
+	folders=("Desktop" "Downloads" "Pictures" "Music" "Videos" "Templates" "Public")
 	for f in "${folders[@]}"
 	do
 		mkdir -p "$H/$f"
@@ -44,7 +44,7 @@ create_folders() {
 }
 
 update_install() {
-	pkg=("neovim bspwm sxhkd alacritty picom rofi polybar dunst zsh xorg-xsetroot firefox adwaita-icon-theme curl wget xwallpaper inetutils")
+	pkg=("neovim bspwm sxhkd alacritty picom rofi polybar dunst zsh xorg-xsetroot firefox adwaita-icon-theme curl wget xwallpaper inetutils arc-icon-theme arc-gtk-theme pcmanfm-gtk3")
 	$P -Syu
 	echo "y" | $P -S $pkg
 }
@@ -137,7 +137,7 @@ $SB
 # Workspaces
 name=1
 for m in \`bspc query -M --names\`;do
-  bspc monitor \$m -d "" ""
+  bspc monitor \$m -d "1" "2" "3"
   let name++
 done
 
@@ -153,6 +153,7 @@ bspc config normal_border_color   "$BACKGROUND"
 # Rules
 bspc rule -a Alacritty desktop="^1" follow=on focus=on
 bspc rule -a firefox desktop="^2" follow=on focus=on
+bspc rule -a Pcmanfm desktop="^3" follow=on focus=on
 
 # Autostart
 killall -q picom bspc sxhkd polybar
@@ -404,6 +405,16 @@ alias ll="ls -alF"
 	_EOF_
 }
 
+set_gtk_theme() {
+	mkdir -p "$C/gtk-3.0"
+	cat > "$C/gtk-3.0/settings.ini" <<- _EOF_
+[Settings]
+gtk-icon-theme-name = Arc
+gtk-theme-name =      Arc-Dark
+gtk-font-name =       $FONTFAMILY 10
+	_EOF_
+}
+
 #set_nvim() {}
 
 download_fonts() {
@@ -421,7 +432,7 @@ download_bg() {
 }
 
 main() {
-	#create_folders
+	create_folders
 	#update_install
 	set_dotzprofile
 	set_xinitrc
@@ -431,6 +442,7 @@ main() {
 	set_polybar
 	set_rofi
 	set_zsh
+	set_gtk_theme
 	# download_fonts
 	# download_bg
 }
